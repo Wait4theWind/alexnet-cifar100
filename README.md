@@ -11,7 +11,7 @@
 - 输入：3 x 32 x 32，使用 CIFAR-100 均值与标准差归一化
 - 数据增强：`RandomCrop(32, padding=4)` + `RandomHorizontalFlip()`
 - 训练：SGD + StepLR，自动保存最佳权重
-- 在线演示：Hugging Face Space（浏览器 ONNX 推理）
+- 在线演示：Hugging Face Space
 
 最终测试集准确率：**63.01%**（第 36 个 epoch）
 
