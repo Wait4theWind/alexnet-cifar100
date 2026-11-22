@@ -100,3 +100,7 @@ CIFAR-100 会自动下载到 `./data`，权重和 `metrics.json` 默认保存到
 - [Dive into Deep Learning - 卷积神经网络](https://zh.d2l.ai/chapter_convolutional-neural-networks/index.html)
 - [Dive into Deep Learning - AlexNet](https://zh.d2l.ai/chapter_convolutional-modern/alexnet.html)
 - [AlexNet 论文](https://papers.nips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html)
+
+## License
+
+MIT License，详见 [LICENSE](LICENSE)。
