@@ -113,5 +113,7 @@ dev_old.ipynb
 dev.ipynb
 export_space.ipynb
 space/
+space_static/
 model_card/
-space_static/*.onnx
+src/export_onnx.py
+src/plot_metrics.py

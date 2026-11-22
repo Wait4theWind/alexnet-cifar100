@@ -2,4 +2,3 @@ torch>=2.1
 torchvision>=0.16
 matplotlib>=3.7
 pillow>=10.0
-onnx>=1.16

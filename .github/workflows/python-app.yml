@@ -20,9 +20,6 @@ jobs:
       - name: Compile all Python sources
         run: python -m compileall -q src
 
-      - name: Check JavaScript syntax
-        run: node --check space_static/app.js
-
       - name: Parse Python sources
         run: |
           python - <<'PY'

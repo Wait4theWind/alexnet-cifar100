@@ -11,7 +11,7 @@
 - 输入：3 x 32 x 32，使用 CIFAR-100 均值与标准差归一化
 - 数据增强：`RandomCrop(32, padding=4)` + `RandomHorizontalFlip()`
 - 训练：SGD + StepLR，自动保存最佳权重
-- 部署：Hugging Face Model 仓库 + Static Space（浏览器 ONNX 推理）
+- 在线演示：Hugging Face Space（浏览器 ONNX 推理）
 
 最终测试集准确率：**63.01%**（第 36 个 epoch）
 
@@ -41,17 +41,9 @@ alexnet-cifar100/
 ├─ src/
 │  ├─ model.py          # 模型定义与形状/参数量自测
 │  ├─ train.py          # 训练、评估、调度器、metrics.json
-│  ├─ predict.py        # 加载权重，打印预测并保存正确/错误样例图
-│  ├─ plot_metrics.py   # 读取 metrics.json 绘制曲线
-│  └─ export_onnx.py    # 导出 ONNX 供浏览器推理
-├─ space_static/        # 免费 Static Space（ONNX Runtime Web）
-│  ├─ index.html
-│  ├─ app.js
-│  ├─ style.css
-│  ├─ classes.json
-│  ├─ README.md
-│  └─ alexnet_cifar100.onnx
+│  └─ predict.py        # 加载权重，打印预测并保存正确/错误样例图
 ├─ assets/              # 曲线图与预测样例图
+├─ checkpoints/metrics.json
 ├─ .github/workflows/python-app.yml
 ├─ requirements.txt
 └─ README.md
@@ -73,7 +65,6 @@ pip install -r requirements.txt
 pip install -r requirements.txt
 python src/model.py
 python src/train.py --epochs 40
-python src/plot_metrics.py --metrics checkpoints/metrics.json
 python src/predict.py --weights checkpoints/best_model.pth
 ```
 
