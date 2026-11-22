@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
 
       - name: Compile all Python sources
-        run: python -m compileall -q src space
+        run: python -m compileall -q src
 
       - name: Check JavaScript syntax
         run: node --check space_static/app.js
@@ -29,7 +29,7 @@ jobs:
           import ast
           from pathlib import Path
 
-          files = sorted(Path("src").rglob("*.py")) + sorted(Path("space").glob("*.py"))
+          files = sorted(Path("src").rglob("*.py"))
           for path in files:
               ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
               print(f"ok: {path}")

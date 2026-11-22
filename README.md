@@ -52,12 +52,6 @@ alexnet-cifar100/
 │  ├─ classes.json
 │  ├─ README.md
 │  └─ alexnet_cifar100.onnx
-├─ space/               # Gradio 版本（需要 HF Pro）
-│  ├─ app.py
-│  ├─ model.py
-│  ├─ requirements.txt
-│  └─ README.md
-├─ model_card/README.md # Hugging Face Model 仓库的模型卡
 ├─ assets/              # 曲线图与预测样例图
 ├─ .github/workflows/python-app.yml
 ├─ requirements.txt
@@ -166,44 +160,10 @@ python src/predict.py --weights checkpoints/best_model.pth --num-samples 8
 | ![correct 1](assets/prediction_correct_1.png) | ![wrong 1](assets/prediction_wrong_1.png) |
 | ![correct 2](assets/prediction_correct_2.png) | |
 
-## Hugging Face
+## 在线演示
 
-- Model 仓库：https://huggingface.co/bbbegemot/alexnet-cifar100
-- Space 体验：https://huggingface.co/spaces/bbbegemot/alexnet-cifar100-demo
-
-### 上传模型权重
-
-```bash
-pip install -U "huggingface_hub>=0.25,<2.0"
-huggingface-cli login
-huggingface-cli upload bbbegemot/alexnet-cifar100 checkpoints/best_model.pth best_model.pth
-huggingface-cli upload bbbegemot/alexnet-cifar100 src/model.py model.py
-huggingface-cli upload bbbegemot/alexnet-cifar100 model_card/README.md README.md
-```
-
-### 导出 ONNX
-
-```bash
-python src/export_onnx.py --weights checkpoints/best_model.pth --out space_static/alexnet_cifar100.onnx
-```
-
-本地没有 PyTorch 时，可以在 Colab 里运行，再把生成的 `alexnet_cifar100.onnx` 上传到 Space。
-
-### 创建 Static Space
-
-HF 免费账号创建 Gradio Space 需要 Pro，所以这里使用 Static SDK：
-
-1. 创建 Space：`bbbegemot/alexnet-cifar100-demo`，SDK 选 **Static**，硬件 CPU Basic
-2. 上传 `space_static/` 里的全部文件，包括 `alexnet_cifar100.onnx`
-3. 等待构建完成，打开 Space 测试
-
-也可以直接用命令行上传：
-
-```bash
-huggingface-cli upload bbbegemot/alexnet-cifar100-demo space_static/ .
-```
-
-`space/` 目录保留的是 Gradio 版本，有 Pro 时可以改用。
+- Model：https://huggingface.co/bbbegemot/alexnet-cifar100
+- Space：https://huggingface.co/spaces/bbbegemot/alexnet-cifar100-demo
 
 ## 已知局限
 

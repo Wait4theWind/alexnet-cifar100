@@ -1,5 +1,0 @@
-torch
-torchvision
-gradio
-pillow
-huggingface_hub

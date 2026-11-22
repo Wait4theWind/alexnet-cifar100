@@ -110,4 +110,8 @@ data/
 *.pth
 *.pt
 dev_old.ipynb
+dev.ipynb
+export_space.ipynb
+space/
+model_card/
 space_static/*.onnx
