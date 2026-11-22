@@ -24,14 +24,59 @@ if (typeof ort === "undefined") {
   loadModel();
 }
 
+async function downloadModel(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("模型下载失败：HTTP " + response.status);
+  }
+
+  const total = Number(response.headers.get("Content-Length") || 0);
+  if (!response.body) {
+    return await response.arrayBuffer();
+  }
+
+  const reader = response.body.getReader();
+  const chunks = [];
+  let received = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    chunks.push(value);
+    received += value.length;
+    if (total) {
+      statusBox.textContent =
+        "模型下载中 " +
+        (received / 1048576).toFixed(1) +
+        " / " +
+        (total / 1048576).toFixed(1) +
+        " MB";
+    }
+  }
+
+  const merged = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return merged.buffer;
+}
+
 async function loadModel() {
   try {
-    const [created, labels] = await Promise.all([
-      ort.InferenceSession.create(MODEL_URL, { executionProviders: ["wasm"] }),
+    statusBox.textContent = "正在下载模型...";
+    const [buffer, labels] = await Promise.all([
+      downloadModel(MODEL_URL),
       fetch(CLASSES_URL).then((response) => response.json()),
     ]);
-    session = created;
     classes = labels;
+    statusBox.textContent = "正在初始化推理引擎...";
+    session = await ort.InferenceSession.create(buffer, {
+      executionProviders: ["wasm"],
+    });
     statusBox.textContent = "模型已就绪，可以上传图片";
     runButton.disabled = !currentBitmap;
   } catch (error) {
@@ -51,7 +96,9 @@ function setImage(bitmap, file) {
   placeholder.hidden = true;
   runButton.disabled = !session;
   resultsBox.innerHTML = "";
-  statusBox.textContent = session ? "图片已选择" : "模型加载中...";
+  if (session) {
+    statusBox.textContent = "图片已选择";
+  }
 }
 
 async function readFile(file) {
