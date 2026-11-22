@@ -110,3 +110,4 @@ data/
 *.pth
 *.pt
 dev_old.ipynb
+space_static/*.onnx
