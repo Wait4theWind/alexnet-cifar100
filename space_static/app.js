@@ -39,13 +39,13 @@ async function loadModel() {
   }
 }
 
-function setImage(bitmap) {
+function setImage(bitmap, file) {
   if (previewUrl) {
     URL.revokeObjectURL(previewUrl);
   }
 
   currentBitmap = bitmap;
-  previewUrl = URL.createObjectURL(bitmap);
+  previewUrl = URL.createObjectURL(file);
   preview.src = previewUrl;
   preview.hidden = false;
   placeholder.hidden = true;
@@ -61,7 +61,7 @@ async function readFile(file) {
 
   try {
     const bitmap = await createImageBitmap(file);
-    setImage(bitmap);
+    setImage(bitmap, file);
   } catch (error) {
     statusBox.textContent = "图片读取失败：" + error.message;
   }
