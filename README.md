@@ -2,8 +2,7 @@
 
 [![Python syntax check](https://github.com/Wait4theWind/alexnet-cifar100/actions/workflows/python-app.yml/badge.svg)](https://github.com/Wait4theWind/alexnet-cifar100/actions/workflows/python-app.yml)
 
-从零手写的 AlexNet，适配 CIFAR-100 的 32x32 输入，包含 BatchNorm、Dropout、
-学习率衰减、最佳权重保存、训练曲线绘制、单图推理与 Hugging Face 部署脚本。
+从零手写的 AlexNet，适配 CIFAR-100 的 32x32 输入，包含 BatchNorm、Dropout 和训练/推理脚本。
 
 ## 项目概览
 
@@ -11,7 +10,7 @@
 - 数据集：CIFAR-100（50,000 张训练图 / 10,000 张测试图，100 类）
 - 输入：3 x 32 x 32，使用 CIFAR-100 均值与标准差归一化
 - 数据增强：`RandomCrop(32, padding=4)` + `RandomHorizontalFlip()`
-- 训练：SGD + StepLR，最佳测试准确率权重保存到 Google Drive
+- 训练：SGD + StepLR，自动保存最佳权重
 - 部署：Hugging Face Model 仓库 + Static Space（浏览器 ONNX 推理）
 
 最终测试集准确率：**63.01%**（第 36 个 epoch）
@@ -41,7 +40,7 @@
 alexnet-cifar100/
 ├─ src/
 │  ├─ model.py          # 模型定义与形状/参数量自测
-│  ├─ train.py          # 训练、评估、调度器、Drive 保存、metrics.json
+│  ├─ train.py          # 训练、评估、调度器、metrics.json
 │  ├─ predict.py        # 加载权重，打印预测并保存正确/错误样例图
 │  ├─ plot_metrics.py   # 读取 metrics.json 绘制曲线
 │  └─ export_onnx.py    # 导出 ONNX 供浏览器推理
@@ -68,84 +67,17 @@ alexnet-cifar100/
 pip install -r requirements.txt
 ```
 
-## 复现步骤
-
-### 1. 检查模型
+## 复现
 
 ```bash
+pip install -r requirements.txt
 python src/model.py
-```
-
-预期输出：
-
-```
-特征展平后: torch.Size([2, 4096])
-模型输出: torch.Size([2, 100])
-参数量: 7025316
-```
-
-### 2. 训练
-
-```bash
-python src/train.py --epochs 40 --batch-size 128 --lr 0.01
-```
-
-常用参数：
-
-| 参数 | 默认值 | 说明 |
-| --- | --- | --- |
-| `--epochs` | 40 | 训练轮数 |
-| `--batch-size` | 128 | batch size |
-| `--lr` | 0.01 | 初始学习率 |
-| `--data-dir` | ./data | 数据集目录 |
-| `--out-dir` | ./checkpoints | 权重和 metrics 的输出目录 |
-
-每个 epoch 会写入 `metrics.json`，包含 `train_loss`、`test_acc` 等字段；
-测试准确率创新高时保存 `best_model.pth`。
-
-### 3. 在 Colab / 云端训练
-
-推荐先在笔记本中挂载 Drive，再以显式输出目录运行：
-
-```python
-from google.colab import drive
-drive.mount('/content/drive')
-```
-
-```bash
-!git clone https://github.com/Wait4theWind/alexnet-cifar100.git
-%cd alexnet-cifar100
-!pip install -r requirements.txt
-!python src/train.py --epochs 40 --out-dir /content/drive/MyDrive/alexnet_cifar100
-```
-
-不传 `--out-dir` 时权重会保存到项目下的 `checkpoints/`，Colab 实例释放后会丢失。
-所以云端训练建议显式传 Drive 路径。CIFAR-100 下载较慢时，可重试或把
-`--data-dir` 指向 Drive 上的缓存目录。
-
-### 4. 绘制曲线
-
-```bash
+python src/train.py --epochs 40
 python src/plot_metrics.py --metrics checkpoints/metrics.json
+python src/predict.py --weights checkpoints/best_model.pth
 ```
 
-生成：
-
-- `assets/loss_curve.png`
-- `assets/accuracy_curve.png`
-- `assets/training_curves.png`
-
-### 5. 推理与样例图
-
-```bash
-python src/predict.py --weights checkpoints/best_model.pth --num-samples 8
-```
-
-脚本会打印每张图的真实标签、预测标签与置信度，并保存：
-
-- `assets/prediction_correct_1.png`
-- `assets/prediction_correct_2.png`
-- `assets/prediction_wrong_1.png`
+CIFAR-100 会自动下载到 `./data`，权重和 `metrics.json` 默认保存到 `./checkpoints`。
 
 ## 训练曲线
 
