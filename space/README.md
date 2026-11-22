@@ -16,8 +16,8 @@ pinned: false
 ## 链接
 
 - GitHub：https://github.com/Wait4theWind/alexnet-cifar100
-- Model：https://huggingface.co/YOUR_HF_USERNAME/alexnet-cifar100
-- Space：https://huggingface.co/spaces/YOUR_HF_USERNAME/alexnet-cifar100-demo
+- Model：https://huggingface.co/bbbegemot/alexnet-cifar100
+- Space：https://huggingface.co/spaces/bbbegemot/alexnet-cifar100-demo
 
 ## 说明
 

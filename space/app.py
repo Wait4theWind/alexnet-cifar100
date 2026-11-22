@@ -6,7 +6,7 @@ from torchvision import transforms
 
 from model import AlexNetCIFAR100
 
-MODEL_REPO = "YOUR_HF_USERNAME/alexnet-cifar100"
+MODEL_REPO = "bbbegemot/alexnet-cifar100"
 GITHUB_URL = "https://github.com/Wait4theWind/alexnet-cifar100"
 
 MEAN = (0.5071, 0.4867, 0.4408)

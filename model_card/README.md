@@ -59,7 +59,7 @@ import torch
 from huggingface_hub import hf_hub_download
 from model import AlexNetCIFAR100
 
-repo_id = "YOUR_HF_USERNAME/alexnet-cifar100"
+repo_id = "bbbegemot/alexnet-cifar100"
 weights = hf_hub_download(repo_id=repo_id, filename="best_model.pth")
 checkpoint = torch.load(weights, map_location="cpu")
 
@@ -71,7 +71,7 @@ model.eval()
 `model.py` 也可以从 Model 仓库或 GitHub 获取：
 
 - GitHub：https://github.com/Wait4theWind/alexnet-cifar100
-- Space 体验：https://huggingface.co/spaces/YOUR_HF_USERNAME/alexnet-cifar100-demo
+- Space 体验：https://huggingface.co/spaces/bbbegemot/alexnet-cifar100-demo
 
 ## 已知局限
 

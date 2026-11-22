@@ -160,21 +160,21 @@ python src/predict.py --weights checkpoints/best_model.pth --num-samples 8
 
 ## Hugging Face
 
-- Model 仓库：https://huggingface.co/YOUR_HF_USERNAME/alexnet-cifar100
-- Space 体验：https://huggingface.co/spaces/YOUR_HF_USERNAME/alexnet-cifar100-demo
+- Model 仓库：https://huggingface.co/bbbegemot/alexnet-cifar100
+- Space 体验：https://huggingface.co/spaces/bbbegemot/alexnet-cifar100-demo
 
 发布步骤：
 
 ```bash
 pip install -U huggingface_hub
 huggingface-cli login
-huggingface-cli upload YOUR_HF_USERNAME/alexnet-cifar100 best_model.pth
-huggingface-cli upload YOUR_HF_USERNAME/alexnet-cifar100 src/model.py model.py
-huggingface-cli upload YOUR_HF_USERNAME/alexnet-cifar100 model_card/README.md README.md
-huggingface-cli upload YOUR_HF_USERNAME/alexnet-cifar100-demo space/ .
+huggingface-cli upload bbbegemot/alexnet-cifar100 best_model.pth
+huggingface-cli upload bbbegemot/alexnet-cifar100 src/model.py model.py
+huggingface-cli upload bbbegemot/alexnet-cifar100 model_card/README.md README.md
+huggingface-cli upload bbbegemot/alexnet-cifar100-demo space/ .
 ```
 
-Space 使用前需要把 `space/app.py` 中的 `YOUR_HF_USERNAME` 替换为实际用户名。
+Space 的 `space/app.py` 中 `MODEL_REPO` 已配置为 `bbbegemot/alexnet-cifar100`。
 
 ## 已知局限
 
