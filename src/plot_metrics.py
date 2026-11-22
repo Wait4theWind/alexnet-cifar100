@@ -1,90 +1,81 @@
-"""读取 metrics.json，绘制 Loss / Accuracy 曲线。"""
-
 import argparse
 import json
-from pathlib import Path
+import os
 
 import matplotlib
-
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Plot training metrics")
+def get_args():
+    parser = argparse.ArgumentParser()
     parser.add_argument("--metrics", type=str, default="checkpoints/metrics.json")
     parser.add_argument("--out-dir", type=str, default="assets")
     return parser.parse_args()
 
 
-def load_history(path: Path) -> list[dict]:
-    with path.open("r", encoding="utf-8") as handle:
-        data = json.load(handle)
-    if isinstance(data, dict):
-        return data["history"]
-    return data
+def main():
+    args = get_args()
+    os.makedirs(args.out_dir, exist_ok=True)
 
+    with open(args.metrics, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-def main() -> None:
-    args = parse_args()
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    history = load_history(Path(args.metrics))
-
-    epochs = [row["epoch"] for row in history]
-    train_loss = [row["train_loss"] for row in history]
-    test_loss = [row.get("test_loss") for row in history]
-    train_acc = [row["train_acc"] for row in history]
-    test_acc = [row["test_acc"] for row in history]
+    history = data["history"]
+    epochs = [h["epoch"] for h in history]
+    train_loss = [h["train_loss"] for h in history]
+    test_loss = [h["test_loss"] for h in history]
+    train_acc = [h["train_acc"] for h in history]
+    test_acc = [h["test_acc"] for h in history]
 
     plt.figure(figsize=(8, 5))
-    plt.plot(epochs, train_loss, marker="o", label="train loss")
-    if all(value is not None for value in test_loss):
-        plt.plot(epochs, test_loss, marker="s", label="test loss")
+    plt.plot(epochs, train_loss, label="train loss")
+    plt.plot(epochs, test_loss, label="test loss")
     plt.xlabel("epoch")
     plt.ylabel("loss")
-    plt.title("CIFAR-100 Loss")
-    plt.grid(True, alpha=0.3)
+    plt.title("Loss")
+    plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(out_dir / "loss_curve.png", dpi=150)
+    plt.savefig(os.path.join(args.out_dir, "loss_curve.png"), dpi=150)
     plt.close()
 
     plt.figure(figsize=(8, 5))
-    plt.plot(epochs, train_acc, marker="o", label="train acc")
-    plt.plot(epochs, test_acc, marker="s", label="test acc")
+    plt.plot(epochs, train_acc, label="train acc")
+    plt.plot(epochs, test_acc, label="test acc")
     plt.xlabel("epoch")
     plt.ylabel("accuracy")
-    plt.title("CIFAR-100 Accuracy")
-    plt.grid(True, alpha=0.3)
+    plt.title("Accuracy")
+    plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(out_dir / "accuracy_curve.png", dpi=150)
+    plt.savefig(os.path.join(args.out_dir, "accuracy_curve.png"), dpi=150)
     plt.close()
 
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
-    plt.plot(epochs, train_loss, marker="o", label="train")
-    if all(value is not None for value in test_loss):
-        plt.plot(epochs, test_loss, marker="s", label="test")
+    plt.plot(epochs, train_loss, label="train")
+    plt.plot(epochs, test_loss, label="test")
     plt.xlabel("epoch")
     plt.ylabel("loss")
     plt.title("Loss")
-    plt.grid(True, alpha=0.3)
+    plt.grid(True)
     plt.legend()
+
     plt.subplot(1, 2, 2)
-    plt.plot(epochs, train_acc, marker="o", label="train")
-    plt.plot(epochs, test_acc, marker="s", label="test")
+    plt.plot(epochs, train_acc, label="train")
+    plt.plot(epochs, test_acc, label="test")
     plt.xlabel("epoch")
     plt.ylabel("accuracy")
     plt.title("Accuracy")
-    plt.grid(True, alpha=0.3)
+    plt.grid(True)
     plt.legend()
+
     plt.tight_layout()
-    plt.savefig(out_dir / "training_curves.png", dpi=150)
+    plt.savefig(os.path.join(args.out_dir, "training_curves.png"), dpi=150)
     plt.close()
 
-    print(f"saved curves to {out_dir.resolve()}")
+    print("曲线已保存到", args.out_dir)
 
 
 if __name__ == "__main__":

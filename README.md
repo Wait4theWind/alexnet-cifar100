@@ -14,7 +14,7 @@
 - 训练：SGD + StepLR，最佳测试准确率权重保存到 Google Drive
 - 部署：Hugging Face Model 仓库 + Gradio Space
 
-最终测试集准确率：**TODO（训练完成后填写）**
+最终测试集准确率：**63.01%**（第 36 个 epoch）
 
 ## 模型结构
 
@@ -77,10 +77,9 @@ python src/model.py
 预期输出：
 
 ```
-features output: (2, 4096)
-logits output:   (2, 100)
-total parameters:     7,025,316
-model self-test passed
+特征展平后: torch.Size([2, 4096])
+模型输出: torch.Size([2, 100])
+参数量: 7025316
 ```
 
 ### 2. 训练
@@ -96,11 +95,8 @@ python src/train.py --epochs 40 --batch-size 128 --lr 0.01
 | `--epochs` | 40 | 训练轮数 |
 | `--batch-size` | 128 | batch size |
 | `--lr` | 0.01 | 初始学习率 |
-| `--optimizer` | sgd | `sgd` 或 `adam` |
-| `--step-size` | 15 | StepLR 衰减周期 |
-| `--gamma` | 0.1 | 学习率衰减系数 |
 | `--data-dir` | ./data | 数据集目录 |
-| `--out-dir` | 自动 | 非 Colab 下为 ./checkpoints |
+| `--out-dir` | ./checkpoints | 权重和 metrics 的输出目录 |
 
 每个 epoch 会写入 `metrics.json`，包含 `train_loss`、`test_acc` 等字段；
 测试准确率创新高时保存 `best_model.pth`。
@@ -121,8 +117,8 @@ drive.mount('/content/drive')
 !python src/train.py --epochs 40 --out-dir /content/drive/MyDrive/alexnet_cifar100
 ```
 
-如果不传 `--out-dir`，`train.py` 也会尝试自动挂载 Drive 并保存到
-`/content/drive/MyDrive/alexnet_cifar100`。CIFAR-100 下载较慢时，可重试或把
+不传 `--out-dir` 时权重会保存到项目下的 `checkpoints/`，Colab 实例释放后会丢失。
+所以云端训练建议显式传 Drive 路径。CIFAR-100 下载较慢时，可重试或把
 `--data-dir` 指向 Drive 上的缓存目录。
 
 ### 4. 绘制曲线
@@ -178,8 +174,7 @@ huggingface-cli upload YOUR_HF_USERNAME/alexnet-cifar100 model_card/README.md RE
 huggingface-cli upload YOUR_HF_USERNAME/alexnet-cifar100-demo space/ .
 ```
 
-Space 使用前需要把 `space/app.py` 中的 `YOUR_HF_USERNAME` 替换为实际用户名，
-或在 Space 设置中配置环境变量 `MODEL_REPO=<用户名>/alexnet-cifar100`。
+Space 使用前需要把 `space/app.py` 中的 `YOUR_HF_USERNAME` 替换为实际用户名。
 
 ## 已知局限
 

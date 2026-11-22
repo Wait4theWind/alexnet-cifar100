@@ -1,27 +1,20 @@
-"""加载训练好的权重，对 CIFAR-100 测试集图片做推理并保存样例图。"""
-
 import argparse
 import os
-import sys
-from pathlib import Path
 
 import matplotlib
-
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import torch
-import torch.nn.functional as F
 from torchvision import datasets, transforms
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from model import AlexNetCIFAR100
 
-CIFAR100_MEAN = (0.5071, 0.4867, 0.4408)
-CIFAR100_STD = (0.2675, 0.2565, 0.2761)
+MEAN = (0.5071, 0.4867, 0.4408)
+STD = (0.2675, 0.2565, 0.2761)
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Predict CIFAR-100 test samples")
+def get_args():
+    parser = argparse.ArgumentParser()
     parser.add_argument("--weights", type=str, default="checkpoints/best_model.pth")
     parser.add_argument("--data-dir", type=str, default="./data")
     parser.add_argument("--out-dir", type=str, default="assets")
@@ -29,118 +22,81 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_model(weights: str, device: torch.device) -> AlexNetCIFAR100:
-    checkpoint = torch.load(weights, map_location=device)
-    state_dict = checkpoint
-    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
-        state_dict = checkpoint["model_state_dict"]
-        if "test_acc" in checkpoint:
-            print(f"checkpoint test acc: {checkpoint['test_acc']:.4f}")
-    model = AlexNetCIFAR100(num_classes=100)
-    model.load_state_dict(state_dict)
-    model.to(device)
-    model.eval()
-    return model
+def save_image(image, label, pred, conf, classes, path):
+    img = image.cpu().numpy().transpose(1, 2, 0)
+    img = img * STD + MEAN
+    img = img.clip(0, 1)
 
-
-def save_sample(
-    image: torch.Tensor,
-    target: int,
-    pred: int,
-    confidence: float,
-    classes: list[str],
-    path: Path,
-) -> None:
-    mean = torch.tensor(CIFAR100_MEAN).view(3, 1, 1)
-    std = torch.tensor(CIFAR100_STD).view(3, 1, 1)
-    display = (image.cpu() * std + mean).clamp(0.0, 1.0).permute(1, 2, 0).numpy()
-
-    fig, ax = plt.subplots(figsize=(3, 3.4))
-    ax.imshow(display)
-    ax.axis("off")
-    ax.set_title(
-        f"true: {classes[target]}\npred: {classes[pred]} ({confidence:.2%})",
+    plt.figure(figsize=(3, 3.2))
+    plt.imshow(img)
+    plt.axis("off")
+    plt.title(
+        f"true: {classes[label]}\npred: {classes[pred]} ({conf:.2%})",
         fontsize=10,
     )
-    fig.tight_layout()
-    fig.savefig(path, dpi=150)
-    plt.close(fig)
-    print(f"saved {path}")
+    plt.tight_layout()
+    plt.savefig(path, dpi=150)
+    plt.close()
+    print("保存图片:", path)
 
 
-def main() -> None:
-    args = parse_args()
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+def main():
+    args = get_args()
+    os.makedirs(args.out_dir, exist_ok=True)
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    transform = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Normalize(CIFAR100_MEAN, CIFAR100_STD),
-        ]
-    )
-    test_set = datasets.CIFAR100(
-        root=args.data_dir, train=False, download=True, transform=transform
-    )
-    classes = test_set.classes
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(MEAN, STD),
+    ])
 
-    model = load_model(args.weights, device)
-    correct_samples: list[tuple[torch.Tensor, int, int, float]] = []
-    wrong_samples: list[tuple[torch.Tensor, int, int, float]] = []
-    printed = 0
+    testset = datasets.CIFAR100(
+        root=args.data_dir, train=False, download=True, transform=transform_test
+    )
+    classes = testset.classes
+
+    checkpoint = torch.load(args.weights, map_location=device)
+    state = checkpoint.get("model_state_dict", checkpoint)
+    print("checkpoint test_acc:", checkpoint.get("test_acc"))
+
+    model = AlexNetCIFAR100().to(device)
+    model.load_state_dict(state)
+    model.eval()
+
+    correct_imgs = []
+    wrong_imgs = []
 
     with torch.no_grad():
-        for index in range(len(test_set)):
-            image, target = test_set[index]
-            logits = model(image.unsqueeze(0).to(device))
-            probs = F.softmax(logits, dim=1).squeeze(0)
-            confidence, pred = probs.max(dim=0)
-            pred = int(pred)
-            confidence = float(confidence)
-            is_correct = pred == target
+        for i in range(len(testset)):
+            image, label = testset[i]
+            output = model(image.unsqueeze(0).to(device))
+            prob = torch.softmax(output, dim=1)
+            conf, pred = prob.max(1)
+            pred = pred.item()
+            conf = conf.item()
 
-            if printed < args.num_samples:
-                mark = "OK" if is_correct else "WRONG"
+            if i < args.num_samples:
                 print(
-                    f"sample {index:05d} | true: {classes[target]:<15} | "
-                    f"pred: {classes[pred]:<15} | conf: {confidence:.4f} | {mark}"
+                    f"第 {i} 张 | 真实: {classes[label]} | "
+                    f"预测: {classes[pred]} | 置信度: {conf:.4f}"
                 )
-                printed += 1
 
-            if is_correct and len(correct_samples) < 2:
-                correct_samples.append((image, target, pred, confidence))
-            if not is_correct and len(wrong_samples) < 1:
-                wrong_samples.append((image, target, pred, confidence))
+            if pred == label and len(correct_imgs) < 2:
+                correct_imgs.append((image, label, pred, conf))
+            if pred != label and len(wrong_imgs) < 1:
+                wrong_imgs.append((image, label, pred, conf))
 
-            if (
-                printed >= args.num_samples
-                and len(correct_samples) >= 2
-                and len(wrong_samples) >= 1
-            ):
+            if i + 1 >= args.num_samples and len(correct_imgs) == 2 and len(wrong_imgs) == 1:
                 break
 
-    for number, (image, target, pred, confidence) in enumerate(correct_samples, 1):
-        save_sample(
-            image,
-            target,
-            pred,
-            confidence,
-            classes,
-            out_dir / f"prediction_correct_{number}.png",
-        )
-    for number, (image, target, pred, confidence) in enumerate(wrong_samples, 1):
-        save_sample(
-            image,
-            target,
-            pred,
-            confidence,
-            classes,
-            out_dir / f"prediction_wrong_{number}.png",
-        )
+    for i, (image, label, pred, conf) in enumerate(correct_imgs, 1):
+        path = os.path.join(args.out_dir, f"prediction_correct_{i}.png")
+        save_image(image, label, pred, conf, classes, path)
 
-    if len(correct_samples) < 2 or not wrong_samples:
-        print("[warn] did not find enough correct/wrong samples to save")
+    for i, (image, label, pred, conf) in enumerate(wrong_imgs, 1):
+        path = os.path.join(args.out_dir, f"prediction_wrong_{i}.png")
+        save_image(image, label, pred, conf, classes, path)
 
 
 if __name__ == "__main__":
