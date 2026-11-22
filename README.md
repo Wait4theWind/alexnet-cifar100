@@ -174,7 +174,7 @@ python src/predict.py --weights checkpoints/best_model.pth --num-samples 8
 ### 上传模型权重
 
 ```bash
-pip install -U huggingface_hub
+pip install -U "huggingface_hub>=0.25,<2.0"
 huggingface-cli login
 huggingface-cli upload bbbegemot/alexnet-cifar100 checkpoints/best_model.pth best_model.pth
 huggingface-cli upload bbbegemot/alexnet-cifar100 src/model.py model.py
